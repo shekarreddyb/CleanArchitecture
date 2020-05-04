@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "echo Starting... && ng serve",
     "build": "ng build",
+    "build:prod": "ng build --prod --subresource-integrity",
     "build:ssr": "ng run CleanArchitecture.WebUI:server:dev",
     "test": "ng test",
     "lint": "ng lint",

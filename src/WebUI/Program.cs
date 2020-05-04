@@ -1,5 +1,6 @@
 using CleanArchitecture.Infrastructure.Identity;
 using CleanArchitecture.Infrastructure.Persistence;
+using CleanArchitecture.Common;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -8,11 +9,22 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
+using Serilog.Enrichers.AspnetcoreHttpcontext;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace CleanArchitecture.WebUI
 {
     public class Program
     {
+        public static readonly string Namespace = typeof(Program).Namespace;
+        public static readonly string AppName = Namespace.Substring(Namespace.LastIndexOf('.', Namespace.LastIndexOf('.') - 1) + 1);
+
+        public static IConfiguration Configuration { get; } = new ConfigurationBuilder()
+           .SetBasePath(Directory.GetCurrentDirectory())
+           .AddJsonFile("logsettings.json", optional: false, reloadOnChange: true)
+           .AddEnvironmentVariables()
+           .Build();
         public async static Task Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
@@ -52,7 +64,11 @@ namespace CleanArchitecture.WebUI
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseStartup<Startup>()
+                    .UseSerilog((provider, context, loggerConfig) =>
+                    {
+                        loggerConfig.WithConfiguration(provider, AppName, Configuration);
+                    });
                 });
     }
 }
